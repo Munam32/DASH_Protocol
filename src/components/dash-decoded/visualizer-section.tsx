@@ -47,7 +47,7 @@ export function VisualizerSection() {
       const videoElement = videoRef.current;
       if (!videoElement) return;
 
-      const url = "https://dash.akamaized.net/envivio/EnvivioDash3/manifest.mpd";
+      const url = "https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps.mpd";
       const player = window.dashjs.MediaPlayer().create();
       playerRef.current = player;
       
