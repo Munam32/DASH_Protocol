@@ -67,14 +67,17 @@ export function VisualizerSection() {
         addLog("Stream initialized. Ready to play.", 'info');
       });
 
-      player.on(window.dashjs.MediaPlayer.events.QUALITY_CHANGE_RENDERED, (e: any) => {
-        if (e.mediaType === "video") {
-          const newQuality = player.getQualityFor("video", e.newQuality);
-          const qualityInfo = `${newQuality.height}p @ ${Math.round(newQuality.bitrate / 1000)} kbps`;
-          setCurrentQuality(qualityInfo);
-          addLog(`Quality changed to: ${qualityInfo}`, 'quality');
-        }
-      });
+      const handleQualityChange = (event: any) => {
+        const newQualityIndex = event.newQuality;
+        const streamInfo = player.getActiveStream().getStreamInfo();
+        const newQuality = player.getBitrateInfoListFor("video", streamInfo.id)[newQualityIndex];
+        const qualityInfo = `${newQuality.height}p @ ${Math.round(newQuality.bitrate / 1000)} kbps`;
+        setCurrentQuality(qualityInfo);
+        addLog(`Quality changed to: ${qualityInfo}`, 'quality');
+      };
+
+      player.on(window.dashjs.MediaPlayer.events.QUALITY_CHANGE_RENDERED, handleQualityChange);
+      player.on(window.dashjs.MediaPlayer.events.PLAYBACK_STARTED, handleQualityChange);
       
       player.on(window.dashjs.MediaPlayer.events.PLAYBACK_TIME_UPDATED, () => {
           const buffer = player.getBufferLength("video");
@@ -113,11 +116,11 @@ export function VisualizerSection() {
     if (!playerRef.current) return;
     const player = playerRef.current;
     
-    addLog("SIMULATING BAD NETWORK: Limiting bandwidth to 50kbps for 10s...", 'network');
+    addLog("SIMULATING BAD NETWORK: Limiting bandwidth to 500kbps for 20s...", 'network');
     player.updateSettings({
       'streaming': {
         'abr': {
-          'maxBitrate': { 'video': 50 }
+          'maxBitrate': { 'video': 500 }
         }
       }
     });
@@ -131,7 +134,7 @@ export function VisualizerSection() {
           }
         }
       });
-    }, 10000);
+    }, 20000);
   };
 
   return (
