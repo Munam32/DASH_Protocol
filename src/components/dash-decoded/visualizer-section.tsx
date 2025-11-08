@@ -43,7 +43,7 @@ export function VisualizerSection() {
       const videoElement = videoRef.current;
       if (!videoElement) return;
 
-      const url = "https://dash.akamaized.net/envivio/EnvivioDash3/manifest.mpd";
+      const url = "https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps.mpd";
       const player = window.dashjs.MediaPlayer().create();
       playerRef.current = player;
       
@@ -99,11 +99,11 @@ export function VisualizerSection() {
     if (!playerRef.current) return;
     const player = playerRef.current;
     
-    addLog("SIMULATING BAD NETWORK: Limiting bandwidth to 300kbps for 10s...");
+    addLog("SIMULATING BAD NETWORK: Limiting bandwidth to 100kbps for 10s...");
     player.updateSettings({
       'streaming': {
         'abr': {
-          'maxBitrate': { 'video': 300 }
+          'maxBitrate': { 'video': 100 }
         }
       }
     });
