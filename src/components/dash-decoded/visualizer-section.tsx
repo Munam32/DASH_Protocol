@@ -28,6 +28,7 @@ export function VisualizerSection() {
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [currentQuality, setCurrentQuality] = useState("N/A");
   const [bufferLength, setBufferLength] = useState(0);
+  const [maxBufferLength, setMaxBufferLength] = useState(100);
   const [isPlayerReady, setPlayerReady] = useState(false);
 
   const addLog = (msg: string, type: LogType = 'info') => {
@@ -166,7 +167,7 @@ export function VisualizerSection() {
                 <div className="text-right text-accent font-mono">{currentQuality}</div>
                 <div className="font-semibold col-span-2">Buffer Level ({bufferLength.toFixed(2)}s):</div>
                 <div className="col-span-2">
-                  <Progress value={(bufferLength / 30) * 100} className="h-3" />
+                  <Progress value={(bufferLength / maxBufferLength) * 100} className="h-3" />
                 </div>
               </div>
               <div className="text-sm font-semibold">Live Action Log:</div>
