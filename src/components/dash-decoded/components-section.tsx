@@ -31,7 +31,7 @@ export function ComponentsSection() {
         </div>
         <div className="mx-auto grid max-w-5xl items-stretch gap-8 sm:grid-cols-1 md:grid-cols-3 md:gap-12 lg:max-w-none mt-12">
           {components.map((component, index) => (
-            <Card key={index} className="flex flex-col h-full">
+            <Card key={index} className="flex flex-col h-full transition-all duration-300 hover:border-accent hover:shadow-lg hover:shadow-accent/20">
               <CardHeader className="items-center pt-8">
                 {component.icon}
               </CardHeader>

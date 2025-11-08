@@ -26,7 +26,7 @@ export function AnalogySection() {
               </p>
             </CardContent>
           </Card>
-          <Card className="h-full border-primary shadow-lg shadow-primary/20 transition-all duration-300 hover:border-primary hover:shadow-lg hover:shadow-primary/20">
+          <Card className="h-full transition-all duration-300 hover:border-primary hover:shadow-lg hover:shadow-primary/20">
             <CardHeader className="flex flex-row items-center gap-4">
               <Sparkles className="h-10 w-10 text-primary" />
               <CardTitle>The DASH Way: Adaptive Streaming</CardTitle>
