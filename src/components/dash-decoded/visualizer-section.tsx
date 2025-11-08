@@ -5,7 +5,8 @@ import { useEffect, useRef, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { AlertCircle, WifiOff } from "lucide-react";
+import { AlertCircle, ArrowDownCircle, ArrowUpCircle, Info, Wifi, WifiOff } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 declare global {
   interface Window {
@@ -13,10 +14,21 @@ declare global {
   }
 }
 
+type LogType = 'info' | 'quality' | 'network' | 'event';
+
 interface LogEntry {
   time: string;
   message: string;
+  type: LogType;
 }
+
+const logTypeConfig: Record<LogType, { icon: React.ReactNode; className: string }> = {
+    info: <Info className="h-4 w-4" />,
+    quality: <ArrowUpCircle className="h-4 w-4" />,
+    network: <Wifi className="h-4 w-4" />,
+    event: <Info className="h-4 w-4" />,
+};
+
 
 export function VisualizerSection() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -27,9 +39,9 @@ export function VisualizerSection() {
   const [bufferLength, setBufferLength] = useState(0);
   const [isPlayerReady, setPlayerReady] = useState(false);
 
-  const addLog = (msg: string) => {
+  const addLog = (msg: string, type: LogType = 'info') => {
     const time = new Date().toLocaleTimeString();
-    setLogs(prevLogs => [...prevLogs.slice(-200), { time, message: msg }]);
+    setLogs(prevLogs => [...prevLogs.slice(-200), { time, message: msg, type }]);
   };
 
   useEffect(() => {
@@ -43,16 +55,16 @@ export function VisualizerSection() {
       const videoElement = videoRef.current;
       if (!videoElement) return;
 
-      const url = "https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps.mpd";
+      const url = "https://dash.akamaized.net/envivio/EnvivioDash3/manifest.mpd";
       const player = window.dashjs.MediaPlayer().create();
       playerRef.current = player;
       
       player.initialize(videoElement, url, false);
-      addLog("DASH player initializing...");
+      addLog("DASH player initializing...", 'info');
 
       player.on(window.dashjs.MediaPlayer.events.STREAM_INITIALIZED, () => {
         setPlayerReady(true);
-        addLog("Stream initialized. Ready to play.");
+        addLog("Stream initialized. Ready to play.", 'info');
       });
 
       player.on(window.dashjs.MediaPlayer.events.QUALITY_CHANGE_RENDERED, (e: any) => {
@@ -60,7 +72,7 @@ export function VisualizerSection() {
           const newQuality = player.getQualityFor("video", e.newQuality);
           const qualityInfo = `${newQuality.height}p @ ${Math.round(newQuality.bitrate / 1000)} kbps`;
           setCurrentQuality(qualityInfo);
-          addLog(`Quality changed to: ${qualityInfo}`);
+          addLog(`Quality changed to: ${qualityInfo}`, 'quality');
         }
       });
       
@@ -71,25 +83,27 @@ export function VisualizerSection() {
       
       player.on(window.dashjs.MediaPlayer.events.FRAGMENT_LOADING_STARTED, (e: any) => {
         if (e.mediaType === "video") {
-          addLog(`Requesting segment: index ${e.request.index}`);
+          addLog(`Requesting segment: index ${e.request.index}`, 'event');
         }
       });
 
       player.on(window.dashjs.MediaPlayer.events.FRAGMENT_LOADING_COMPLETED, (e: any) => {
         if (e.mediaType === "video") {
           const duration = (e.request.duration / 1000).toFixed(2);
-          addLog(`Downloaded segment in ${duration}s.`);
+          addLog(`Downloaded segment in ${duration}s.`, 'event');
         }
       });
 
       return () => {
-        addLog("Cleaning up player instance.");
-        player.reset();
+        addLog("Cleaning up player instance.", 'info');
+        if (player) {
+          player.reset();
+        }
       };
     } else {
        setTimeout(() => {
         if (!playerRef.current) {
-            addLog("Error: dash.js script not found.");
+            addLog("Error: dash.js script not found.", 'info');
         }
        }, 3000);
     }
@@ -99,17 +113,17 @@ export function VisualizerSection() {
     if (!playerRef.current) return;
     const player = playerRef.current;
     
-    addLog("SIMULATING BAD NETWORK: Limiting bandwidth to 100kbps for 10s...");
+    addLog("SIMULATING BAD NETWORK: Limiting bandwidth to 50kbps for 10s...", 'network');
     player.updateSettings({
       'streaming': {
         'abr': {
-          'maxBitrate': { 'video': 100 }
+          'maxBitrate': { 'video': 50 }
         }
       }
     });
 
     setTimeout(() => {
-      addLog("NETWORK RESTORED: Removing bandwidth limit.");
+      addLog("NETWORK RESTORED: Removing bandwidth limit.", 'network');
       player.updateSettings({
         'streaming': {
           'abr': {
@@ -155,12 +169,31 @@ export function VisualizerSection() {
               <div className="text-sm font-semibold">Live Action Log:</div>
               <div ref={logContainerRef} className="bg-background rounded-md p-3 text-sm font-mono border h-[300px] overflow-y-auto space-y-2">
                 {logs.length > 0 ? (
-                  logs.map((log, index) => (
-                    <div key={index} className="flex gap-2 text-muted-foreground text-xs">
-                      <span className="text-primary/70 shrink-0">{log.time}</span>
-                      <span className="break-words">{log.message}</span>
-                    </div>
-                  ))
+                  logs.map((log, index) => {
+                    let icon: React.ReactNode;
+                    let colorClass = "text-muted-foreground";
+
+                    if (log.type === 'quality') {
+                      icon = <ArrowUpCircle className="h-4 w-4" />;
+                      colorClass = "text-accent";
+                    } else if (log.type === 'network') {
+                      icon = log.message.includes("SIMULATING") ? <WifiOff className="h-4 w-4" /> : <Wifi className="h-4 w-4" />;
+                      colorClass = "text-destructive";
+                       if (log.message.includes("RESTORED")) {
+                         colorClass = "text-green-400";
+                       }
+                    } else {
+                       icon = <Info className="h-4 w-4" />;
+                    }
+
+                    return (
+                      <div key={index} className={cn("flex items-start gap-2 text-xs", colorClass)}>
+                        <span className="text-primary/70 shrink-0">{log.time}</span>
+                        <div className="flex items-center gap-1 shrink-0">{icon}</div>
+                        <span className="break-words">{log.message}</span>
+                      </div>
+                    );
+                  })
                 ) : (
                   <div className="flex items-center justify-center h-full text-muted-foreground">
                     <AlertCircle className="mr-2 h-4 w-4" />
