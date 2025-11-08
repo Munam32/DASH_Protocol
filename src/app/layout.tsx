@@ -7,6 +7,9 @@ import { Toaster } from "@/components/ui/toaster";
 export const metadata: Metadata = {
   title: 'DASH Decoded',
   description: 'An interactive guide to the DASH streaming protocol.',
+  icons: {
+    icon: '/icon.svg',
+  },
 };
 
 export default function RootLayout({
