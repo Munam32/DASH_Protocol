@@ -10,12 +10,12 @@ export function AnalogySection() {
           <div className="space-y-2">
             <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">The "Old Way" vs. The "DASH Way"</h2>
             <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-              Use the "Restaurant Analogy" to explain the concept.
+              Comparing traditional video loading with modern adaptive streaming.
             </p>
           </div>
         </div>
         <div className="mx-auto grid max-w-5xl items-start gap-8 sm:grid-cols-2 md:gap-12 lg:max-w-none lg:grid-cols-2 mt-12">
-          <Card className="h-full">
+          <Card className="h-full transition-all duration-300 hover:border-primary hover:shadow-lg hover:shadow-primary/20">
             <CardHeader className="flex flex-row items-center gap-4">
               <Download className="h-10 w-10 text-muted-foreground" />
               <CardTitle>The Old Way: Progressive Download</CardTitle>
@@ -26,7 +26,7 @@ export function AnalogySection() {
               </p>
             </CardContent>
           </Card>
-          <Card className="h-full border-primary shadow-lg shadow-primary/20">
+          <Card className="h-full border-primary shadow-lg shadow-primary/20 transition-all duration-300 hover:border-primary hover:shadow-lg hover:shadow-primary/20">
             <CardHeader className="flex flex-row items-center gap-4">
               <Sparkles className="h-10 w-10 text-primary" />
               <CardTitle>The DASH Way: Adaptive Streaming</CardTitle>

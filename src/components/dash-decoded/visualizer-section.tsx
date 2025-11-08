@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { AlertCircle, ArrowDownCircle, ArrowUpCircle, Info, Wifi, WifiOff } from "lucide-react";
+import { AlertCircle, ArrowUpCircle, Info, Wifi, WifiOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 declare global {
@@ -21,14 +21,6 @@ interface LogEntry {
   message: string;
   type: LogType;
 }
-
-const logTypeConfig: Record<LogType, { icon: React.ReactNode; className: string }> = {
-    info: <Info className="h-4 w-4" />,
-    quality: <ArrowUpCircle className="h-4 w-4" />,
-    network: <Wifi className="h-4 w-4" />,
-    event: <Info className="h-4 w-4" />,
-};
-
 
 export function VisualizerSection() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -55,7 +47,7 @@ export function VisualizerSection() {
       const videoElement = videoRef.current;
       if (!videoElement) return;
 
-      const url = "https://dash.akamaized.net/envivio/EnvivioDash3/manifest.mpd";
+      const url = "https://media.axprod.net/TestVectors/v7-Clear/Manifest.mpd";
       const player = window.dashjs.MediaPlayer().create();
       playerRef.current = player;
       
@@ -66,14 +58,23 @@ export function VisualizerSection() {
         setPlayerReady(true);
         addLog("Stream initialized. Ready to play.", 'info');
       });
-
+      
       const handleQualityChange = (event: any) => {
-        const newQualityIndex = event.newQuality;
+        const newQualityIndex = player.getQualityFor("video");
         const streamInfo = player.getActiveStream().getStreamInfo();
-        const newQuality = player.getBitrateInfoListFor("video", streamInfo.id)[newQualityIndex];
+        if (!streamInfo) return;
+        const bitrates = player.getBitrateInfoListFor("video", streamInfo.id);
+        if (!bitrates || !bitrates[newQualityIndex]) return;
+        
+        const newQuality = bitrates[newQualityIndex];
         const qualityInfo = `${newQuality.height}p @ ${Math.round(newQuality.bitrate / 1000)} kbps`;
+        
         setCurrentQuality(qualityInfo);
-        addLog(`Quality changed to: ${qualityInfo}`, 'quality');
+        if (event.type === "qualityChangeRendered") {
+            addLog(`Quality changed to: ${qualityInfo}`, 'quality');
+        } else {
+             addLog(`Initial quality: ${qualityInfo}`, 'info');
+        }
       };
 
       player.on(window.dashjs.MediaPlayer.events.QUALITY_CHANGE_RENDERED, handleQualityChange);
@@ -116,7 +117,7 @@ export function VisualizerSection() {
     if (!playerRef.current) return;
     const player = playerRef.current;
     
-    addLog("SIMULATING BAD NETWORK: Limiting bandwidth to 500kbps for 20s...", 'network');
+    addLog("SIMULATING BAD NETWORK: Limiting bandwidth to 500kbps for 30s...", 'network');
     player.updateSettings({
       'streaming': {
         'abr': {
@@ -134,7 +135,7 @@ export function VisualizerSection() {
           }
         }
       });
-    }, 20000);
+    }, 30000);
   };
 
   return (
